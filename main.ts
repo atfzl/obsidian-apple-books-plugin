@@ -36,9 +36,9 @@ export default class AppleBooksPlugin extends Plugin {
 	onunload() {}
 
 	private async syncHighlights() {
-		const annotationDBFolderFiles = await fs.readdir(
-			ANNOTATION_DB_FOLDER_ABSOLUTE_PATH
-		);
+		const annotationDBFolderFiles = await fs
+			.readdir(ANNOTATION_DB_FOLDER_ABSOLUTE_PATH)
+			.catch(() => []);
 		const annotationDBFileName = annotationDBFolderFiles
 			.filter((fileName) => fileName.endsWith(".sqlite"))
 			.first();
@@ -55,9 +55,9 @@ export default class AppleBooksPlugin extends Plugin {
 			annotationDBFileName
 		);
 
-		const booksDBFolderFiles = await fs.readdir(
-			BOOKS_DB_FOLDER_ABSOLUTE_PATH
-		);
+		const booksDBFolderFiles = await fs
+			.readdir(BOOKS_DB_FOLDER_ABSOLUTE_PATH)
+			.catch(() => []);
 		const booksDBFileName = booksDBFolderFiles
 			.filter((fileName) => fileName.endsWith(".sqlite"))
 			.first();
