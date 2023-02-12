@@ -226,19 +226,6 @@ class AppleBooksSettingTab extends PluginSettingTab {
 			text: "Settings for Apple Books Highlights",
 		});
 		new Setting(this.containerEl)
-			.setName("Sync highlights on startup")
-			.setDesc(
-				"Automatically sync Apple Books highlights when Obsidian starts"
-			)
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.syncOnStartup)
-					.onChange(async (value) => {
-						this.plugin.settings.syncOnStartup = value;
-						await this.plugin.saveSettings();
-					});
-			});
-		new Setting(this.containerEl)
 			.setName("Highlights folder location")
 			.setDesc(
 				"Vault folder to use for saving book highlight notes. Default directory is 'Apple Books Highlights'."
@@ -257,6 +244,19 @@ class AppleBooksSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.highlightsFolder)
 					.onChange(async (value) => {
 						this.plugin.settings.highlightsFolder = value;
+						await this.plugin.saveSettings();
+					});
+			});
+		new Setting(this.containerEl)
+			.setName("Sync highlights on startup")
+			.setDesc(
+				"Automatically sync Apple Books highlights when Obsidian starts"
+			)
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.syncOnStartup)
+					.onChange(async (value) => {
+						this.plugin.settings.syncOnStartup = value;
 						await this.plugin.saveSettings();
 					});
 			});
