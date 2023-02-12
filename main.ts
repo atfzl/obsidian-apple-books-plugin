@@ -30,15 +30,17 @@ const BOOKS_DB_FOLDER_ABSOLUTE_PATH = path.join(
 // 2. [Cancelled] Provide instructions to install sqlite3 via brew in a Modal
 // 3. [Done] Add setting to define the folder to save highlights to
 // 4. Add setting to sync in fixed intervals
-// 5. Add setting to sync on startup
+// 5. [Done] Add setting to sync on startup
 // 6. Publish to obsidian plugins
 
 interface AppleBooksPluginSettings {
 	highlightsFolder: string;
+	syncOnStartup: boolean;
 }
 
 const DEFAULT_SETTINGS: AppleBooksPluginSettings = {
 	highlightsFolder: "Apple Books Highlights",
+	syncOnStartup: false,
 };
 
 export default class AppleBooksPlugin extends Plugin {
@@ -46,6 +48,10 @@ export default class AppleBooksPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
+
+		if (this.settings.syncOnStartup) {
+			await this.syncHighlights();
+		}
 
 		this.addSettingTab(new AppleBooksSettingTab(this.app, this));
 
@@ -219,6 +225,19 @@ class AppleBooksSettingTab extends PluginSettingTab {
 		this.containerEl.createEl("h2", {
 			text: "Settings for Apple Books Highlights",
 		});
+		new Setting(this.containerEl)
+			.setName("Sync highlights on startup")
+			.setDesc(
+				"Automatically sync Apple Books highlights when Obsidian starts"
+			)
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.syncOnStartup)
+					.onChange(async (value) => {
+						this.plugin.settings.syncOnStartup = value;
+						await this.plugin.saveSettings();
+					});
+			});
 		new Setting(this.containerEl)
 			.setName("Highlights folder location")
 			.setDesc(
