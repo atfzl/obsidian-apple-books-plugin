@@ -20,6 +20,14 @@ const BOOKS_DB_FOLDER_ABSOLUTE_PATH = path.join(
 
 export default class AppleBooksPlugin extends Plugin {
 	async onload() {
+		// This creates an icon in the left ribbon.
+		this.addRibbonIcon("book", "Apple Books Highlights Sync", () => {
+			this.syncHighlights();
+		});
+	}
+	onunload() {}
+
+	private async syncHighlights() {
 		const annotationDBFolderFiles = await fs.readdir(
 			ANNOTATION_DB_FOLDER_ABSOLUTE_PATH
 		);
@@ -28,6 +36,9 @@ export default class AppleBooksPlugin extends Plugin {
 			.first();
 
 		if (!annotationDBFileName) {
+			new Notice(
+				"Apple Books Annotation Database not found, cannot sync."
+			);
 			return;
 		}
 
@@ -35,7 +46,6 @@ export default class AppleBooksPlugin extends Plugin {
 			ANNOTATION_DB_FOLDER_ABSOLUTE_PATH,
 			annotationDBFileName
 		);
-		console.log({ annotationDBAbsoluteFileName });
 
 		const booksDBFolderFiles = await fs.readdir(
 			BOOKS_DB_FOLDER_ABSOLUTE_PATH
@@ -45,6 +55,7 @@ export default class AppleBooksPlugin extends Plugin {
 			.first();
 
 		if (!booksDBFileName) {
+			new Notice("Apple Books Books Database not found, cannot sync.");
 			return;
 		}
 
@@ -52,7 +63,6 @@ export default class AppleBooksPlugin extends Plugin {
 			BOOKS_DB_FOLDER_ABSOLUTE_PATH,
 			booksDBFileName
 		);
-		console.log({ booksDBAbsoluteFileName });
 
 		const annotationDataSelectQuery =
 			"SELECT ZANNOTATIONASSETID,ZANNOTATIONUUID,ZANNOTATIONSELECTEDTEXT from ZAEANNOTATION where ZANNOTATIONDELETED = 0 AND ZANNOTATIONSELECTEDTEXT NOT NULL;";
@@ -65,15 +75,25 @@ export default class AppleBooksPlugin extends Plugin {
 			.split("@@@")
 			.filter((a) => !!a);
 
-		const annotationData = annotationDBRawRows.map((row) =>
-			row.split("|||")
-		);
+		interface HighlightData {
+			annotationId: string;
+			selectedText: string;
+		}
 
-		console.log({ annotationData });
+		const annotationData = annotationDBRawRows
+			.map((row) => row.split("|||"))
+			.reduce((acc, row) => {
+				if (!acc[row[0]]) {
+					acc[row[0]] = [];
+				}
+				acc[row[0]].push({
+					annotationId: row[1],
+					selectedText: row[2],
+				});
+				return acc;
+			}, {} as Record<string, Array<HighlightData>>);
 
-		const uniqueBookIds = Array.from(
-			new Set(annotationData.map((row) => row[0]))
-		).map((a) => `'${a}'`);
+		const uniqueBookIds = Object.keys(annotationData).map((a) => `'${a}'`);
 
 		const booksDataSelectQuery = `SELECT ZASSETID,ZAUTHOR,ZTITLE from ZBKLIBRARYASSET where ZASSETID in (${uniqueBookIds.join(
 			","
@@ -88,19 +108,51 @@ export default class AppleBooksPlugin extends Plugin {
 			.filter((a) => !!a);
 		const booksData = booksDBRawRows.map((row) => row.split("|||"));
 
-		console.log({ booksData });
+		const finalData: Record<
+			string,
+			{
+				bookId: string;
+				authorName: string;
+				bookTitle: string;
+				highlights: Array<HighlightData>;
+			}
+		> = {};
+		for (const bookData of booksData) {
+			const bookId = bookData[0];
+			// ignore highlights for books which are no longer in library
+			if (!annotationData[bookId]) {
+				continue;
+			}
+			finalData[bookId] = {
+				bookId,
+				authorName: bookData[1],
+				bookTitle: bookData[2],
+				highlights: annotationData[bookId],
+			};
+		}
 
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon("dice", "Sample Plugin", (evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice("This is a notice!");
-		});
+		const highlightsFolder = "Apple Books Highlights";
 
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(
-			window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000)
-		);
+		const highlightsFolderAbstractFile =
+			this.app.vault.getAbstractFileByPath(highlightsFolder);
+		if (highlightsFolderAbstractFile) {
+			await this.app.vault.delete(highlightsFolderAbstractFile, true);
+		}
+		await this.app.vault.createFolder(highlightsFolder);
+
+		for (const [, book] of Object.entries(finalData)) {
+			await this.app.vault.create(
+				`${highlightsFolder}/${book.bookTitle}.md`,
+				`## Metadata\n- Author: ${
+					book.authorName
+				}\n- [Apple Books Link](ibooks://assetid/${
+					book.bookId
+				})\n\n## Highlights\n${book.highlights
+					.map((highlight) => highlight.selectedText)
+					.join("\n\n---\n")}`
+			);
+		}
+
+		new Notice("Successfully finished Apple Books Highlight Sync");
 	}
-
-	onunload() {}
 }
