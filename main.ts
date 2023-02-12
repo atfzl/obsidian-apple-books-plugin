@@ -20,6 +20,14 @@ const BOOKS_DB_FOLDER_ABSOLUTE_PATH = path.join(
 
 export default class AppleBooksPlugin extends Plugin {
 	async onload() {
+		this.addCommand({
+			id: "obsidian-apple-books-plugin-sync-highlights",
+			name: "Sync highlights",
+			callback: () => {
+				this.syncHighlights();
+			},
+		});
+
 		// This creates an icon in the left ribbon.
 		this.addRibbonIcon("book", "Apple Books Highlights Sync", () => {
 			this.syncHighlights();
