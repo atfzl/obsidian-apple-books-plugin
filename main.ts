@@ -6,13 +6,15 @@ const ANNOTATION_DB_FOLDER_ABSOLUTE_PATH = `${process.env.HOME}/Library/Containe
 
 export default class AppleBooksPlugin extends Plugin {
 	async onload() {
-		const result = await fs.readdir(ANNOTATION_DB_FOLDER_ABSOLUTE_PATH);
+		const annotationDBFolderFiles = await fs.readdir(
+			ANNOTATION_DB_FOLDER_ABSOLUTE_PATH
+		);
 
-		const annotationDB = result
+		const annotationDBFileName = annotationDBFolderFiles
 			.filter((fileName) => fileName.endsWith(".sqlite"))
 			.first();
 
-		console.log(annotationDB);
+		console.log(annotationDBFileName);
 
 		// This creates an icon in the left ribbon.
 		this.addRibbonIcon("dice", "Sample Plugin", (evt: MouseEvent) => {
