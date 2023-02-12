@@ -196,8 +196,8 @@ class SqliteInstallModal extends Modal {
 
 	onOpen() {
 		const { titleEl, contentEl } = this;
-		titleEl.setText("Apple Books Highlights");
-		contentEl.innerHTML = `sqlite3 not found. sqlite is needed to import highlights from the Apple Books sqlite database.<br /><br /> Please install <a href="https://brew.sh">Homebrew</a> and then run <code>brew install sqlite</code>`;
+		titleEl.setText("Apple Books Highlights Error");
+		contentEl.innerHTML = `sqlite3 not found. sqlite3 is required to import highlights from the Apple Books sqlite database.<br /><ol><li>Install <a href="https://brew.sh">Homebrew</a></li> <li>Install <a href="https://formulae.brew.sh/formula/sqlite">sqlite3</a> by running the command <code>brew install sqlite</code> in your terminal.`;
 	}
 
 	onClose() {
