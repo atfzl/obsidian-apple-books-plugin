@@ -24,6 +24,7 @@ const BOOKS_DB_FOLDER_ABSOLUTE_PATH = path.join(
 // 3. Add setting to define the folder to save highlights to
 // 4. Add setting to sync in fixed intervals
 // 5. Add setting to sync on startup
+// 6. Publish to obsidian plugins
 
 export default class AppleBooksPlugin extends Plugin {
 	async onload() {
