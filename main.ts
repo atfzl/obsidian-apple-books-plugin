@@ -29,7 +29,7 @@ export default class AppleBooksPlugin extends Plugin {
 		});
 
 		// This creates an icon in the left ribbon.
-		this.addRibbonIcon("book", "Apple Books Highlights Sync", () => {
+		this.addRibbonIcon("book", "Apple Books Sync Highlights", () => {
 			this.syncHighlights();
 		});
 	}
