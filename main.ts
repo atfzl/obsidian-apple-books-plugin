@@ -18,6 +18,13 @@ const BOOKS_DB_FOLDER_ABSOLUTE_PATH = path.join(
 	"BKLibrary"
 );
 
+// TODO
+// 1. Check if user has sqlite3 installed
+// 2. Provide instructions to install sqlite3 via brew in a Modal
+// 3. Add setting to define the folder to save highlights to
+// 4. Add setting to sync in fixed intervals
+// 5. Add setting to sync on startup
+
 export default class AppleBooksPlugin extends Plugin {
 	async onload() {
 		this.addCommand({
