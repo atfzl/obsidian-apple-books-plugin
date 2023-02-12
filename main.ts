@@ -3,7 +3,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 
-import { App, Modal, Notice, Plugin } from "obsidian";
+import { Notice, Plugin } from "obsidian";
 
 const exec = promisify(execCB);
 
@@ -28,8 +28,6 @@ const BOOKS_DB_FOLDER_ABSOLUTE_PATH = path.join(
 
 export default class AppleBooksPlugin extends Plugin {
 	async onload() {
-		await this.checkSqliteInstalled();
-
 		this.addCommand({
 			id: "obsidian-apple-books-plugin-sync-highlights",
 			name: "Sync highlights",
@@ -45,21 +43,7 @@ export default class AppleBooksPlugin extends Plugin {
 	}
 	onunload() {}
 
-	private async checkSqliteInstalled() {
-		try {
-			await exec("sqlite --version");
-			return true;
-		} catch (e) {
-			new SqliteInstallModal(this.app).open();
-			return false;
-		}
-	}
-
 	private async syncHighlights() {
-		if (!(await this.checkSqliteInstalled())) {
-			return;
-		}
-
 		const annotationDBFolderFiles = await fs
 			.readdir(ANNOTATION_DB_FOLDER_ABSOLUTE_PATH)
 			.catch(() => []);
@@ -186,23 +170,5 @@ export default class AppleBooksPlugin extends Plugin {
 		}
 
 		new Notice("Successfully finished Apple Books Highlight Sync");
-	}
-}
-
-class SqliteInstallModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		const { titleEl, contentEl } = this;
-		titleEl.setText("Apple Books Highlights Error");
-		contentEl.innerHTML = `sqlite3 not found. sqlite3 is required to import highlights from the Apple Books sqlite database.<br /><ol><li>Install <a href="https://brew.sh">Homebrew</a></li> <li>Install <a href="https://formulae.brew.sh/formula/sqlite">sqlite3</a> by running the command <code>brew install sqlite</code> in your terminal.`;
-	}
-
-	onClose() {
-		const { titleEl, contentEl } = this;
-		titleEl.empty();
-		contentEl.empty();
 	}
 }
