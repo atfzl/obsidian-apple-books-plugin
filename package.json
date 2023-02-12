@@ -9,7 +9,7 @@
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
 	"keywords": [],
-	"author": "",
+	"author": "Atif Afzal (atif@atfzl.com)",
 	"license": "MIT",
 	"devDependencies": {
 		"@types/better-sqlite3": "^7.6.3",
