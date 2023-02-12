@@ -1,9 +1,9 @@
 {
 	"id": "obsidian-apple-books-plugin",
-	"name": "Obsidian Apple Books Plugin",
+	"name": "Apple Books Highlights",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Sync your Apple Books highlights automatically",
+	"description": "Sync your Apple Books highlights",
 	"author": "Atif Afzal",
 	"authorUrl": "https://atfzl.com",
 	"isDesktopOnly": true
