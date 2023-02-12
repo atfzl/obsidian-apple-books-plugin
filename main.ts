@@ -25,15 +25,6 @@ const BOOKS_DB_FOLDER_ABSOLUTE_PATH = path.join(
 	"BKLibrary"
 );
 
-// TODO
-// 1. [Cancelled] Check if user has sqlite3 installed
-// 2. [Cancelled] Provide instructions to install sqlite3 via brew in a Modal
-// 3. [Done] Add setting to define the folder to save highlights to
-// 4. [Cancelled] Add setting to sync in fixed intervals
-// 5. [Done] Add setting to sync on startup
-// 6. Write README
-// 7. Publish to obsidian plugins
-
 interface AppleBooksPluginSettings {
 	highlightsFolder: string;
 	syncOnStartup: boolean;
