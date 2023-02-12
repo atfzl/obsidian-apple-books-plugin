@@ -228,9 +228,12 @@ class AppleBooksSettingTab extends PluginSettingTab {
 				const files = this.app.vault.getAllLoadedFiles();
 				const folders = files.filter((file) => file instanceof TFolder);
 
-				folders.forEach((folder) => {
-					dropdown.addOption(folder.path, folder.path);
-				});
+				folders
+					.map((folder) => folder.path)
+					.sort()
+					.forEach((path) => {
+						dropdown.addOption(path, path);
+					});
 				return dropdown
 					.setValue(this.plugin.settings.highlightsFolder)
 					.onChange(async (value) => {
