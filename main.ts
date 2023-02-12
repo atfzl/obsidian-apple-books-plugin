@@ -3,7 +3,14 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import { promisify } from "util";
 
-import { Notice, Plugin } from "obsidian";
+import {
+	App,
+	Notice,
+	Plugin,
+	PluginSettingTab,
+	Setting,
+	TFolder,
+} from "obsidian";
 
 const exec = promisify(execCB);
 
@@ -26,8 +33,22 @@ const BOOKS_DB_FOLDER_ABSOLUTE_PATH = path.join(
 // 5. Add setting to sync on startup
 // 6. Publish to obsidian plugins
 
+interface AppleBooksPluginSettings {
+	highlightsFolder: string;
+}
+
+const DEFAULT_SETTINGS: AppleBooksPluginSettings = {
+	highlightsFolder: "Apple Books Highlights",
+};
+
 export default class AppleBooksPlugin extends Plugin {
+	settings: AppleBooksPluginSettings;
+
 	async onload() {
+		await this.loadSettings();
+
+		this.addSettingTab(new AppleBooksSettingTab(this.app, this));
+
 		this.addCommand({
 			id: "obsidian-apple-books-plugin-sync-highlights",
 			name: "Sync highlights",
@@ -42,6 +63,18 @@ export default class AppleBooksPlugin extends Plugin {
 		});
 	}
 	onunload() {}
+
+	async loadSettings() {
+		this.settings = Object.assign(
+			{},
+			DEFAULT_SETTINGS,
+			await this.loadData()
+		);
+	}
+
+	async saveSettings() {
+		await this.saveData(this.settings);
+	}
 
 	private async syncHighlights() {
 		const annotationDBFolderFiles = await fs
@@ -147,18 +180,18 @@ export default class AppleBooksPlugin extends Plugin {
 			};
 		}
 
-		const highlightsFolder = "Apple Books Highlights";
-
 		const highlightsFolderAbstractFile =
-			this.app.vault.getAbstractFileByPath(highlightsFolder);
+			this.app.vault.getAbstractFileByPath(
+				this.settings.highlightsFolder
+			);
 		if (highlightsFolderAbstractFile) {
 			await this.app.vault.delete(highlightsFolderAbstractFile, true);
 		}
-		await this.app.vault.createFolder(highlightsFolder);
+		await this.app.vault.createFolder(this.settings.highlightsFolder);
 
 		for (const [, book] of Object.entries(finalData)) {
 			await this.app.vault.create(
-				`${highlightsFolder}/${book.bookTitle}.md`,
+				`${this.settings.highlightsFolder}/${book.bookTitle}.md`,
 				`## Metadata\n- Author: ${
 					book.authorName
 				}\n- [Apple Books Link](ibooks://assetid/${
@@ -170,5 +203,40 @@ export default class AppleBooksPlugin extends Plugin {
 		}
 
 		new Notice("Successfully finished Apple Books Highlight Sync");
+	}
+}
+
+class AppleBooksSettingTab extends PluginSettingTab {
+	plugin: AppleBooksPlugin;
+
+	constructor(app: App, plugin: AppleBooksPlugin) {
+		super(app, plugin);
+		this.plugin = plugin;
+	}
+
+	display(): void {
+		this.containerEl.empty();
+		this.containerEl.createEl("h2", {
+			text: "Settings for Apple Books Highlights",
+		});
+		new Setting(this.containerEl)
+			.setName("Highlights folder location")
+			.setDesc(
+				"Vault folder to use for saving book highlight notes. Default directory is 'Apple Books Highlights'."
+			)
+			.addDropdown((dropdown) => {
+				const files = this.app.vault.getAllLoadedFiles();
+				const folders = files.filter((file) => file instanceof TFolder);
+
+				folders.forEach((folder) => {
+					dropdown.addOption(folder.path, folder.path);
+				});
+				return dropdown
+					.setValue(this.plugin.settings.highlightsFolder)
+					.onChange(async (value) => {
+						this.plugin.settings.highlightsFolder = value;
+						await this.plugin.saveSettings();
+					});
+			});
 	}
 }
