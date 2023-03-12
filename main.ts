@@ -42,7 +42,7 @@ export default class AppleBooksPlugin extends Plugin {
 		await this.loadSettings();
 
 		if (this.settings.syncOnStartup) {
-			await this.syncHighlights();
+			await this.syncHighlightsSafe();
 		}
 
 		this.addSettingTab(new AppleBooksSettingTab(this.app, this));
@@ -51,13 +51,13 @@ export default class AppleBooksPlugin extends Plugin {
 			id: "obsidian-apple-books-plugin-sync-highlights",
 			name: "Sync highlights",
 			callback: () => {
-				this.syncHighlights();
+				this.syncHighlightsSafe();
 			},
 		});
 
 		// This creates an icon in the left ribbon.
 		this.addRibbonIcon("book", "Apple Books Sync Highlights", () => {
-			this.syncHighlights();
+			this.syncHighlightsSafe();
 		});
 	}
 	onunload() {}
@@ -72,6 +72,14 @@ export default class AppleBooksPlugin extends Plugin {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	private async syncHighlightsSafe() {
+		try {
+			this.syncHighlights();
+		} catch (e) {
+			new Notice("Error in Apple Books Highlight Sync:", e);
+		}
 	}
 
 	private async syncHighlights() {
@@ -188,8 +196,9 @@ export default class AppleBooksPlugin extends Plugin {
 		await this.app.vault.createFolder(this.settings.highlightsFolder);
 
 		for (const [, book] of Object.entries(finalData)) {
+			const filePath = `${this.settings.highlightsFolder}/${book.bookTitle}.md`;
 			await this.app.vault.create(
-				`${this.settings.highlightsFolder}/${book.bookTitle}.md`,
+				filePath,
 				`## Metadata\n- Author: ${
 					book.authorName
 				}\n- [Apple Books Link](ibooks://assetid/${
