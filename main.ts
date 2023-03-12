@@ -220,7 +220,7 @@ class AppleBooksSettingTab extends PluginSettingTab {
 		new Setting(this.containerEl)
 			.setName("Highlights folder location")
 			.setDesc(
-				"Vault folder to use for saving book highlight notes. Default directory is 'Apple Books Highlights'."
+				"Vault folder to use for saving book highlight notes. Default directory is 'Apple Books Highlights'. WARNING: this folder and all its contents will be deleted on every sync! Use a dedicated folder for this plugin, and do not edit the notes it creates."
 			)
 			.addDropdown((dropdown) => {
 				const files = this.app.vault.getAllLoadedFiles();
