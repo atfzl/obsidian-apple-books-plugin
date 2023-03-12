@@ -10,6 +10,7 @@ import {
 	PluginSettingTab,
 	Setting,
 	TFolder,
+	normalizePath,
 } from "obsidian";
 
 const exec = promisify(execCB);
@@ -196,7 +197,14 @@ export default class AppleBooksPlugin extends Plugin {
 		await this.app.vault.createFolder(this.settings.highlightsFolder);
 
 		for (const [, book] of Object.entries(finalData)) {
-			const filePath = `${this.settings.highlightsFolder}/${book.bookTitle}.md`;
+			const highlightsFolderPath = this.settings.highlightsFolder;
+			const fileName = `${book.bookTitle}.md`
+				.replace("\\", " ")
+				.replace("/", " ")
+				.replace(":", " ");
+			const filePath = normalizePath(
+				path.join(highlightsFolderPath, fileName)
+			);
 			await this.app.vault.create(
 				filePath,
 				`## Metadata\n- Author: ${
