@@ -121,7 +121,7 @@ export default class AppleBooksPlugin extends Plugin {
 		);
 
 		const annotationDataSelectQuery =
-			"SELECT ZANNOTATIONASSETID,ZANNOTATIONUUID,ZANNOTATIONSELECTEDTEXT from ZAEANNOTATION where ZANNOTATIONDELETED = 0 AND ZANNOTATIONSELECTEDTEXT NOT NULL;";
+			"SELECT ZANNOTATIONMODIFICATIONDATE,ZANNOTATIONSTYLE,ZFUTUREPROOFING5,ZANNOTATIONSELECTEDTEXT,ZANNOTATIONNOTE,ZANNOTATIONLOCATION,ZANNOTATIONASSETID,ZANNOTATIONUUID,ZPLLOCATIONRANGESTART FROM ZAEANNOTATION WHERE ZANNOTATIONDELETED = 0 and ZANNOTATIONTYPE = 2 and ZANNOTATIONSELECTEDTEXT is not null and ZANNOTATIONSELECTEDTEXT <> '' ORDER BY ZPLLOCATIONRANGESTART ASC, ZANNOTATIONMODIFICATIONDATE ASC ;";
 		const separatorConfig = '-cmd ".separator ||| @@@"';
 		const annotationDBResult = await exec(
 			`sqlite3 --readonly ${separatorConfig} ${annotationDBAbsoluteFileName} "${annotationDataSelectQuery}"`
@@ -133,7 +133,10 @@ export default class AppleBooksPlugin extends Plugin {
 
 		interface HighlightData {
 			annotationId: string;
-			selectedText: string;
+			selectedText: string;			
+			annotationStyle: integer;
+			annotationChapter: string;
+			annotationDate: string;
 		}
 
 		const annotationData = annotationDBRawRows
@@ -145,13 +148,16 @@ export default class AppleBooksPlugin extends Plugin {
 				acc[row[0]].push({
 					annotationId: row[1],
 					selectedText: row[2],
+					annotationStyle: row[3],
+					annotationChapter: row[4],
+					annotationDate: row[5],
 				});
 				return acc;
 			}, {} as Record<string, Array<HighlightData>>);
 
 		const uniqueBookIds = Object.keys(annotationData).map((a) => `'${a}'`);
 
-		const booksDataSelectQuery = `SELECT ZASSETID,ZAUTHOR,ZTITLE from ZBKLIBRARYASSET where ZASSETID in (${uniqueBookIds.join(
+		const booksDataSelectQuery = `SELECT ZASSETID,ZAUTHOR,ZTITLE,ZLASTOPENDATE FROM ZBKLIBRARYASSET ORDER BY ZTITLE ASC where ZASSETID in (${uniqueBookIds.join(
 			","
 		)})`;
 
@@ -170,6 +176,7 @@ export default class AppleBooksPlugin extends Plugin {
 				bookId: string;
 				authorName: string;
 				bookTitle: string;
+				bookLastOpened: string;
 				highlights: Array<HighlightData>;
 			}
 		> = {};
