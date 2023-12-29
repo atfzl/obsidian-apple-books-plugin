@@ -198,10 +198,7 @@ export default class AppleBooksPlugin extends Plugin {
 
 		for (const [, book] of Object.entries(finalData)) {
 			const highlightsFolderPath = this.settings.highlightsFolder;
-			const fileName = `${book.bookTitle}.md`
-				.replace("\\", " ")
-				.replace("/", " ")
-				.replace(":", " ");
+			const fileName = `${book.bookTitle}.md`.replace(/[\\\/:]/g, " ")
 			const filePath = normalizePath(
 				path.join(highlightsFolderPath, fileName)
 			);
